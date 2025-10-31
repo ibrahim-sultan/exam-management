@@ -13,7 +13,6 @@
     "@radix-ui/react-dialog": "^1.1.6",
     "@radix-ui/react-dropdown-menu": "^2.1.6",
     "@radix-ui/react-slot": "^1.1.2",
-    "@supabase/supabase-js": "^2.39.0",
     "class-variance-authority": "^0.7.1",
     "lucide-react": "^0.487.0",
     "react": "^18.2.0",
@@ -44,7 +43,6 @@
     "education",
     "react",
     "typescript",
-    "supabase",
     "tailwindcss"
   ],
   "author": "Your Name",

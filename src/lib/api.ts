@@ -1,50 +1,46 @@
-import { projectId, publicAnonKey } from '../utils/supabase/info';
-import { supabase } from '../utils/supabase/client';
+const API_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:4000/api';
 
-const API_URL = `https://${projectId}.supabase.co/functions/v1/make-server-f04930f2`;
+// Simple token store
+const tokenKey = 'ems_token';
 
-// Helper to get auth header
-async function getAuthHeader() {
-  const { data: { session } } = await supabase.auth.getSession();
-  return session?.access_token ? `Bearer ${session.access_token}` : `Bearer ${publicAnonKey}`;
+function getToken() {
+  return localStorage.getItem(tokenKey);
+}
+
+function setToken(token: string | null) {
+  if (token) localStorage.setItem(tokenKey, token);
+  else localStorage.removeItem(tokenKey);
 }
 
 // Helper for API calls
 async function apiCall(endpoint: string, options: RequestInit = {}) {
-  const authHeader = await getAuthHeader();
-  
+  const token = getToken();
   const response = await fetch(`${API_URL}${endpoint}`, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': authHeader,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...options.headers,
     },
   });
-  
-  const data = await response.json();
-  
+
+  const data = await response.json().catch(() => ({}));
   if (!response.ok) {
-    throw new Error(data.error || 'API request failed');
+    throw new Error(data?.error || 'API request failed');
   }
-  
   return data;
 }
 
 // ==================== AUTH API ====================
 export const authAPI = {
   async signIn(email: string, password: string) {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
+    const data = await apiCall('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
     });
-    
-    if (error) throw error;
-    
-    // Get user profile
+    setToken(data.token);
     const profile = await apiCall('/user/profile');
-    
-    return { user: data.user, profile: profile.profile, session: data.session };
+    return { user: profile.profile, token: data.token };
   },
 
   async signUp(userData: { email: string; password: string; name: string; role?: string }) {
@@ -55,15 +51,14 @@ export const authAPI = {
   },
 
   async signOut() {
-    await supabase.auth.signOut();
+    setToken(null);
   },
 
   async getSession() {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return null;
-    
+    const token = getToken();
+    if (!token) return null;
     const profile = await apiCall('/user/profile');
-    return { session, profile: profile.profile };
+    return { token, profile: profile.profile };
   },
 };
 
@@ -127,8 +122,7 @@ export const questionsAPI = {
   },
 
   async bulkCreate(questions: any[]) {
-    // Create questions one by one
-    const created = [];
+    const created = [] as any[];
     for (const question of questions) {
       const result = await this.create(question);
       created.push(result);
