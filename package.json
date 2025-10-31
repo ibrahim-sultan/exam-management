@@ -53,8 +53,8 @@
             "vite": "6.3.5"
       },
       "scripts": {
-            "dev": "vite",
-            "build": "vite build",
+            "dev": "vite --config client/vite.config.ts",
+            "build": "vite build --config client/vite.config.ts",
             "server": "node server/src/index.js"
       }
 }
