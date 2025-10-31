@@ -40,7 +40,7 @@ export const authAPI = {
     });
     setToken(data.token);
     const profile = await apiCall('/user/profile');
-    return { user: profile.profile, token: data.token };
+    return { user: profile.profile, profile: profile.profile, token: data.token };
   },
 
   async signUp(userData: { email: string; password: string; name: string; role?: string }) {

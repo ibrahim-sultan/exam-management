@@ -61,8 +61,8 @@ export default function App() {
       const sessionData = await authAPI.getSession();
       if (sessionData) {
         setCurrentUser({
-          id: sessionData.session.user.id,
-          email: sessionData.session.user.email!,
+          id: sessionData.profile.id,
+          email: sessionData.profile.email!,
           name: sessionData.profile.name,
           role: sessionData.profile.role,
         });
